@@ -6,8 +6,9 @@ from datetime import datetime
 import math, re, os
 
 class PlotlyVisualizer:
-    def __init__(self, folder_path):
+    def __init__(self, folder_path, time_range = "2020-01-01"):
         self.folder_path = folder_path
+        self.time_range = time_range
 
     # 从 xml 文件名获取用户名 username 与导出时间 export_time
     # acquire username and export_time from the xml file  
@@ -55,6 +56,8 @@ class PlotlyVisualizer:
             #提取开始日期
             try:
                 started = vn.find('started').text
+                if datetime.strptime(started, "%Y-%m-%d") < datetime.strptime(self.time_range, "%Y-%m-%d"):
+                    continue
             except:
                 continue # 无开始日期直接跳过
 
@@ -104,7 +107,7 @@ class PlotlyVisualizer:
 
         # 起迄时间控制
         fig.update_xaxes(range=[
-            '2023-08-01', datetime.today().date()
+            self.time_range, datetime.today().date()
         ])
 
         # 生成图片后再按 started 排序，否则会按颜色映射分组、每组内再按 started 排序
@@ -115,7 +118,7 @@ class PlotlyVisualizer:
         # 根据项目数调整高度，设置背景颜色；设置标题
         username, export_time = self.extract_info_from_filename(self.process_files())
         fig.update_layout(
-            height = len(results) * 20, #经验性的高度
+            height = len(results) * 30, #经验性的高度
             plot_bgcolor = '#e5f0ff',
             title_text = f"vndb用户{username}的视觉小说可视化，<br>数据导出时间：{export_time}",
         )
@@ -147,5 +150,5 @@ class PlotlyVisualizer:
 
 if __name__ == '__main__':
     folder_path = os.path.dirname(os.path.abspath(__file__))
-    Visualizer = PlotlyVisualizer(folder_path)
+    Visualizer = PlotlyVisualizer(folder_path, "2020-01-01")
     Visualizer.visualize_data()
